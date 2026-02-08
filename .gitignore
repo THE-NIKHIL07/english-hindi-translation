@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env/
+.envrc
+
+# Streamlit
+.streamlit/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# TensorFlow / Keras
+*.h5
+*.hdf5
+
+# ONNX
+*.onnx
+
+# Pytest / coverage
+.coverage
+htmlcov/
+*.pytest_cache/
+
+# Git LFS will handle large files like .h5 if tracked

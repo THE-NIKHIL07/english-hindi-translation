@@ -39,7 +39,7 @@ def build_transformer():
 
 def _standardize_text(text):
     text = text.lower()
-    text = re.sub(r"[^\w\s]", "", text)
+    text = re.sub(r"[!\"#$%&'()*+,-./:;<=>?@\[\]^_`{|}~]", "", text)
     return text
 
 

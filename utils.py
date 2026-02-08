@@ -6,7 +6,7 @@ import os
 import tensorflow as tf
 import json
 import numpy as np
-
+import re
 
 
 VOCAB_SIZE = 25000
@@ -36,6 +36,13 @@ def build_transformer():
 
 
 
+
+def _standardize_text(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)
+    return text
+
+
 def _load_vectorizers():
     with open("source_vocab.json", "r") as f:
         src_vocab_list = json.load(f)
@@ -55,6 +62,7 @@ def _load_vectorizers():
         def __call__(self, texts):
             tokenized = []
             for t in texts:
+                t = _standardize_text(t)
                 tokenized.append([self.word2idx.get(w, self.word2idx.get("[UNK]", 1)) for w in t.split()])
             return tf.keras.preprocessing.sequence.pad_sequences(tokenized, maxlen=self.max_len, padding='post')
 

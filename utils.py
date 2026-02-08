@@ -73,31 +73,33 @@ def _load_vectorizers():
     target_vectorizer = SimpleVectorizer(tgt_word_to_index, index_to_word, max_len=HINDI_SEQUENCE_LENGTH)
     return source_vectorizer, target_vectorizer, index_to_word
 
-def translator(sentence,transformer):
+def translator(sentence, transformer):
+   
     source_vectorizer, target_vectorizer, index_to_word = _load_vectorizers()
-    transformer.load_weights("en_hi_weights.h5")
 
-    sentence = " ".join(sentence.strip().split())
-    words = sentence.split()
-    truncated_note = ""
-    if len(words) > ENGLISH_SEQUENCE_LENGTH:
-        sentence = " ".join(words[:ENGLISH_SEQUENCE_LENGTH])
-        truncated_note = f"Input truncated to {ENGLISH_SEQUENCE_LENGTH} tokens for translation."
+    words = sentence.strip().split()
+    output_container = []
 
-    src_tokens = source_vectorizer([sentence])
-    shifted_target = ["starttoken"]
-    output = []
+    
+    for i in range(0, len(words), ENGLISH_SEQUENCE_LENGTH):
+        chunk = words[i:i + ENGLISH_SEQUENCE_LENGTH]
+        chunk_text = " ".join(chunk)
+        src_tokens = source_vectorizer([chunk_text])
+        shifted_target = ["starttoken"]
+        output = []
 
-    for _ in range(HINDI_SEQUENCE_LENGTH):
-        tgt_text = " ".join(shifted_target)
-        tgt_tokens = target_vectorizer([tgt_text])
-        logits = transformer([src_tokens, tgt_tokens], training=False)
-        next_id = tf.argmax(logits[0, len(shifted_target)-1, :]).numpy()
-        next_word = index_to_word.get(next_id, "[UNK]")
-        if next_word in ["endtoken", "[UNK]"]:
-            break
-        output.append(next_word)
-        shifted_target.append(next_word)
+        for _ in range(HINDI_SEQUENCE_LENGTH):
+            tgt_text = " ".join(shifted_target)
+            tgt_tokens = target_vectorizer([tgt_text])
+            logits = transformer([src_tokens, tgt_tokens], training=False)
+            next_id = tf.argmax(logits[0, len(shifted_target)-1, :]).numpy()
+            next_word = index_to_word.get(next_id, "[UNK]")
+            if next_word in ["endtoken", "[UNK]"]:
+                break
+            output.append(next_word)
+            shifted_target.append(next_word)
 
-    translation_text = " ".join(output)
-    return translation_text, truncated_note
+        output_container += output
+
+    translation_text = " ".join(output_container)
+    return translation_text, ""

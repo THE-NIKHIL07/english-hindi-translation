@@ -33,7 +33,7 @@ class Embeddings(tf.keras.layers.Layer):
             input_dim=vocab_size,
             output_dim=embed_dim,
             mask_zero=True,
-            name="embedding"   # ✅ ABSOLUTELY REQUIRED
+            name="embedding"  
         )
 
     def call(self, inputs):
@@ -104,7 +104,7 @@ class TransformerDecoder(Layer):
         B = tf.shape(x)[0]
         T = tf.shape(x)[1]
 
-        # causal mask (tokens can only attend to <= i)
+       
         causal_mask = tf.linalg.band_part(tf.ones((T, T)), -1, 0)
         causal_mask = tf.cast(causal_mask, tf.bool)
         causal_mask = tf.reshape(causal_mask, (1, T, T))
@@ -126,7 +126,7 @@ class TransformerDecoder(Layer):
         attn_out = self.cross_attention(query=x, key=enc_outputs, value=enc_outputs, attention_mask=enc_mask)
         x = self.ln2(x + attn_out)
 
-        # feed-forward
+       
         ffn_out = self.ffn(x)
         x = self.ln3(x + ffn_out)
 

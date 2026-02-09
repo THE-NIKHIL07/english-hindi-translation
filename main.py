@@ -7,13 +7,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import time
-
 from utils import translator, build_transformer
 
 app = FastAPI(title="English to Hindi Translator")
 
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
-
 templates = Jinja2Templates(directory="frontend")
 
 transformer = None
@@ -28,12 +26,15 @@ class TranslationResponse(BaseModel):
     note: str
     model_info: dict
 
-@app.on_event("startup")
-async def startup_event():
+def get_model():
     global transformer
-    if os.path.exists(MODEL_WEIGHTS_PATH):
-        transformer = build_transformer()
-        transformer.load_weights(MODEL_WEIGHTS_PATH)
+    if transformer is None:
+        if os.path.exists(MODEL_WEIGHTS_PATH):
+            transformer = build_transformer()
+            transformer.load_weights(MODEL_WEIGHTS_PATH)
+        else:
+            raise HTTPException(status_code=503, detail="Model weights not found")
+    return transformer
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -41,12 +42,9 @@ async def home(request: Request):
 
 @app.post("/translate", response_model=TranslationResponse)
 async def translate(req: TranslationRequest):
-    if transformer is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-
+    model = get_model()
     start = time.time()
-    translation, note = translator(req.text, transformer)
-
+    translation, note = translator(req.text, model)
     return TranslationResponse(
         translation=translation,
         processing_time=round(time.time() - start, 3),
